@@ -1,5 +1,5 @@
-﻿Program Xonix;
-Uses GraphABC, Events;
+program Xonix;
+Uses GraphABC, Events,ABCButtons;
 type
   tsprite = record
     x, y, dx, dy: Integer;
@@ -8,7 +8,8 @@ const
   n = 60; //ширина игрового поля
   m = 40; //высота игрового поля
   p = 75; //процент заполнения поля, после которого игра выиграна
-  
+  label 1;
+  label 2;
 Var
   a: array[1..n, 1..m] of Integer; //игровое поле
   player: tsprite; //положение игрока
@@ -18,6 +19,10 @@ Var
   key:Integer;//нажатая клавиша
   fl:Boolean;//флаг окончания игры
   st:String;//Результат игры
+  ch:String;
+  q:string;
+  z:text;
+  pr:integer;
 
 procedure KeyDown(key : Integer) := theEnd := True;
 
@@ -38,6 +43,7 @@ begin
   TextOut(200,150,'XONIX');
   Sleep(1000);
  until theEnd;
+ 
 end;
 
 procedure clear_occupied(x, y: Integer); //рекурсивная процедура
@@ -174,7 +180,7 @@ end;
 
 Procedure GameProc;
 var
-  i, j, k, pr: Integer;
+  i, j, k: Integer;
 begin
   //передвижение врагов
   for i := 1 to e do //перебираем в цикле массив врагов
@@ -229,8 +235,10 @@ begin
         a[player.x + player.dx, player.y + player.dy] := 4;
         player.x := player.x + player.dx;
         player.y := player.y + player.dy;
-        player.dx := 0;
-        player.dy := 0;
+       if player.x=1 then player.dx := 0;
+        if player.y=1 then player.dy := 0;
+        if player.x=60 then player.dx := 0;
+        if player.y=40 then player.dy := 0;
         //в цикле меняем все ячейки в завершонной стене на заполненные
         for i := 1 to n do
           for j := 1 to m do
@@ -276,18 +284,45 @@ begin
 end;
   
 Begin
+  assign(z,'C:\kk\kk.txt');
  onKeyDown := KeyDown;
  Zast;//вызов заставки
- e:=0;fl:=false;
+ 1:e:=0;fl:=false;
  SetFontSize(10);
- repeat
- Clearwindow;
- Write('Выберите уровень (1-5): ');Read(e);
- until (e>0) and (e<6);
  
+ repeat
+      clearwindow;
+ TextOut(4,1,'Введите имя пользователя:');
+ 
+ var j:string ;
+ TextOut(4,15,'Рекорды:');
+ reset(z);
+ while not eof(z) do
+   begin
+   readln(z,j);
+   writeln(' ');
+   writeln(' ');
+   write(j);
+   end;
+ 
+close(z);
+   read(q); 
+
+ Clearwindow;
+ TextOut(1,1,'Выберите уровень (1-5): ');Read(e);
+ e:=e-1;
+ until (e>-1) and (e<6);
+  
+  
+   
+   
+
+ 2:fl:=false;
+ e:=e+1;
  onKeyDown := KeyDown2;
  SetBrushColor(clWhite);//очистка экрана
  FillRect(0, 0, 500,500);
+ 
  
  NewGame;
  SetFontSize(20);
@@ -298,8 +333,65 @@ Begin
   GameProc;
   Sleep(100);
  until fl=true;
-
+  
+clearwindow;
  SetFontSize(50);
  SetFontColor(clBlue);
  TextOut(100,150,st);//вывод результата игры
-End.
+ 
+ Sleep(3000);//пауза
+ SetFontSize(30);
+ onKeyDown := KeyDown;
+  if (e=5) and (st='Вы выиграли') then 
+   begin
+     append(z);
+ writeln(z,q,' - ',e,' ','Уровень',', ','Захвачено',' ',pr,'%');
+    close(z);
+     Clearwindow;
+   SetFontSize(50);
+   SetFontColor(clBlue);
+   SetBrushColor(clWhite);
+   TextOut(130,150,'Конец игры');
+   sleep(3000);
+   Window.close;
+   end;
+ if st='Вы выиграли' then
+ begin
+   clearwindow;
+   goto 2;
+   end
+   else
+ begin
+ repeat
+ Clearwindow;
+  SetBrushColor(clWhite);
+  TextOut(1,1,'Начать новую игру? (y-да, n-нет)');Readln(ch);
+ until (ch='y') or (ch='n');
+ 
+ if ch='y' then
+  begin
+append(z);
+ writeln(z,q,' - ',e,' ','Уровень',', ','Захвачено',' ',pr,'%');
+    close(z);
+   Clearwindow;
+   
+   goto 1;
+  end
+ else
+ begin
+  append(z);
+ writeln(z,q,' - ',e,' ','Уровень',', ','Захвачено',' ',pr,'%');
+    close(z);
+   Clearwindow;
+   SetFontSize(50);
+   SetFontColor(clBlue);
+   SetBrushColor(clWhite);
+   TextOut(130,150,'Конец игры');
+   sleep(3000);
+   Window.close;
+   
+   
+  
+ end;
+end;
+end.
